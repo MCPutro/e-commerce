@@ -123,17 +123,6 @@ public class RoleService {
     }
 
     private RoleResponse mapToRoleResponse(Role role, boolean withDetailPermission) {
-//        List<PermissionResponse> permissionResponses = role.getPermissions().stream()
-//                .map(permission -> PermissionResponse.builder()
-//                        .id(permission.getId())
-//                        .name(permission.getName())
-//                        .resource(permission.getResource())
-//                        .action(permission.getAction())
-//                        .description(permission.getDescription())
-//                        .createdAt(permission.getCreatedAt())
-//                        .build())
-//                .collect(Collectors.toList());
-
         return RoleResponse.builder()
                 .id(role.getId())
                 .name(role.getName())

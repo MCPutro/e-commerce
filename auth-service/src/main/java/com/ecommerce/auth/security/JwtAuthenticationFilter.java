@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(jwt)) {
                 String email = jwtUtil.extractEmail(jwt);
-                List<String> permissions = jwtUtil.extractPermissions(jwt);
+//                List<String> permissions = jwtUtil.extractPermissions(jwt);
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userService.loadUserByUsername(email);

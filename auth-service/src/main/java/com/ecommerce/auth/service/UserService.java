@@ -11,17 +11,14 @@ import com.ecommerce.auth.exception.DuplicateResourceException;
 import com.ecommerce.auth.exception.ResourceNotFoundException;
 import com.ecommerce.auth.repository.RoleRepository;
 import com.ecommerce.auth.repository.UserRepository;
-import com.ecommerce.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-//import org.springframework.security.core.GrantedAuthority;
-//import org.springframework.security.core.authority.SimpleGrantedAuthority;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.security.core.userdetails.UserDetailsService;
-//import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -41,8 +39,7 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    //    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -57,7 +54,7 @@ public class UserService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPasswordHash(),
-                user.getIsActive(),
+                user.getActive(),
                 true, true, true,
                 authorities
         );
@@ -88,12 +85,12 @@ public class UserService implements UserDetailsService {
             user.setEmail(request.getEmail());
         }
 
-//        if (request.getCurrentPassword() != null && request.getNewPassword() != null) {
-//            if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
-//                throw new AuthenticationException("Current password is incorrect");
-//            }
-//            user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-//        }
+        if (request.getCurrentPassword() != null && request.getNewPassword() != null) {
+            if (!passwordEncoder.matches(request.getCurrentPassword() + "." + request.getEmail(), user.getPasswordHash())) {
+                throw new AuthenticationException("Current password is incorrect");
+            }
+            user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        }
 
         userRepository.save(user);
         log.info("User profile updated: {}", user.getId());
@@ -110,10 +107,6 @@ public class UserService implements UserDetailsService {
                 .map(user -> mapToUserResponse(user, withDetail))
                 .toList();
 
-//        List<UserResponse> users = userPage.getContent().stream()
-//                .map(this::mapToUserResponse)
-//                .collect(Collectors.toList());
-
         return PaginatedResponse.of(users, page, perPage, userPage.getTotalElements());
     }
 
@@ -129,9 +122,9 @@ public class UserService implements UserDetailsService {
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .passwordHash(request.getPassword())
+                .passwordHash(this.passwordEncoder.encode(request.getPassword() + "." + request.getEmail()))
                 .role(role)
-                .isActive(request.getIsActive() != null ? request.getIsActive() : true)
+                .active(request.getIsActive() != null ? request.getIsActive() : true)
                 .build();
 
         userRepository.save(user);
@@ -165,9 +158,9 @@ public class UserService implements UserDetailsService {
             user.setEmail(request.getEmail());
         }
 
-//        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-//            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-//        }
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword() + "." + request.getEmail()));
+        }
 
         if (request.getRoleId() != null) {
             Role role = roleRepository.findById(request.getRoleId())
@@ -176,7 +169,7 @@ public class UserService implements UserDetailsService {
         }
 
         if (request.getIsActive() != null) {
-            user.setIsActive(request.getIsActive());
+            user.setActive(request.getIsActive());
         }
 
         userRepository.save(user);
@@ -187,10 +180,11 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
+        if (!userRepository.existsByIdAndActiveIsTrue(id)) {
             throw new ResourceNotFoundException("User not found with id: " + id);
         }
-        userRepository.deleteById(id);
+//        userRepository.deleteById(id);
+        userRepository.setActive(false, id, Instant.now(), getCurrentUsername());
         log.info("User deleted successfully: {}", id);
     }
 
@@ -206,8 +200,19 @@ public class UserService implements UserDetailsService {
                                 .collect(Collectors.toList())
                         : null
                 )
-                .isActive(user.getIsActive())
-                .createdAt(user.getCreatedAt())
+                .isActive(user.getActive())
+                .updatedAt(user.getUpdatedAt() == null ? user.getCreatedAt() : user.getUpdatedAt())
                 .build();
+    }
+
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null; // Or throw an exception
+        }
+
+        // Returns the username (String)
+        return authentication.getName();
     }
 }

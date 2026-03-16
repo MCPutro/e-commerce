@@ -5,7 +5,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     role_id UUID NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT true,
+    active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
 );
@@ -13,4 +13,4 @@ CREATE TABLE users (
 -- Create indexes for faster lookups
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role_id);
-CREATE INDEX idx_users_is_active ON users(is_active);
+CREATE INDEX idx_users_is_active ON users(active);

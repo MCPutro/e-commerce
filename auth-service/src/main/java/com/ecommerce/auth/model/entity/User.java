@@ -2,7 +2,6 @@ package com.ecommerce.auth.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -10,7 +9,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
@@ -41,9 +39,9 @@ public class User{
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "active", nullable = false)
     @Builder.Default
-    private Boolean isActive = true;
+    private Boolean active = true;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -54,8 +52,8 @@ public class User{
     private String createdBy;
 
     @LastModifiedDate
-    @Column(name = "updated_date")
-    private Instant updatedDate;
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     @LastModifiedBy
     @Column(name = "updated_by", insertable = false)

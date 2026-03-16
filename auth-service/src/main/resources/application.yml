@@ -21,10 +21,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
+        default_schema: identity
   flyway:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
+    default-schema: identity
+    create-schemas: true
 
 # Spring doc
 springdoc:

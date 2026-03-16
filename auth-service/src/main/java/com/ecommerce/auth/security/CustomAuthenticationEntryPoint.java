@@ -1,6 +1,5 @@
 package com.ecommerce.auth.security;
 
-import com.ecommerce.auth.exception.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -26,6 +26,6 @@ public class UserResponse {
     @JsonProperty("is_active")
     private Boolean isActive;
 
-    @JsonProperty("created_at")
-    private Instant createdAt;
+    @JsonProperty("updated_at")
+    private Instant updatedAt;
 }

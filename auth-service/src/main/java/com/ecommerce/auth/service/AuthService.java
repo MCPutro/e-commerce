@@ -14,7 +14,6 @@ import com.ecommerce.auth.repository.UserRepository;
 import com.ecommerce.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +46,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword() + "." + request.getEmail()))
                 .role(customerRole)
-                .isActive(true)
+                .active(true)
                 .build();
 
         userRepository.save(user);
@@ -63,7 +62,7 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AuthenticationException("Invalid email or password 1"));
 
-        if (!user.getIsActive()) {
+        if (!user.getActive()) {
             throw new AuthenticationException("Account is deactivated");
         }
 
@@ -94,8 +93,8 @@ public class AuthService {
                 .permissions(user.getRole().getPermissions().stream()
                         .map(p -> p.getResource() + ":" + p.getAction())
                         .toList())
-                .isActive(user.getIsActive())
-                .createdAt(user.getCreatedAt())
+                .isActive(user.getActive())
+                .updatedAt(user.getUpdatedAt() == null ? user.getCreatedAt() : user.getUpdatedAt())
                 .build();
 
         return AuthResponse.builder()

@@ -54,8 +54,8 @@ public class Role {
     private String createdBy;
 
     @LastModifiedDate
-    @Column(name = "updated_date")
-    private Instant updatedDate;
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     @LastModifiedBy
     @Column(name = "updated_by", insertable = false)
